@@ -144,6 +144,7 @@ void menu()
                         edited::Checkbox("Target Behind Wall", ("Shoots to bullet teleport radius"), &settings::combat::hit_scan);
                         edited::Checkbox(("Show radius"), ("Drawing the bullet teleport radius"), &settings::weapons::show_radius);
                     }
+                    edited::Checkbox(("STW"), ("Shoot Throw Wall - redirect bullets through walls to closest point on target"), &settings::weapons::stw);
                 }
 
                 edited::EndChild();

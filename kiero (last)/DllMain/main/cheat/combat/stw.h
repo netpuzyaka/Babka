@@ -16,47 +16,50 @@
 #define STW_MAX_ITERATIONS 8
 #endif
 
-inline PlayerProjectileUpdate* stw_get_ppu()
+namespace stw_impl
 {
-	static PlayerProjectileUpdate* ppu = nullptr;
-	if (!ppu)
-		ppu = (PlayerProjectileUpdate*)methods::object_new(il2cpp::_init_class(("PlayerProjectileUpdate"), ("ProtoBuf")));
-	return ppu;
-}
+	inline PlayerProjectileUpdate* get_ppu()
+	{
+		static PlayerProjectileUpdate* ppu = nullptr;
+		if (!ppu)
+			ppu = (PlayerProjectileUpdate*)methods::object_new(il2cpp::_init_class(("PlayerProjectileUpdate"), ("ProtoBuf")));
+		return ppu;
+	}
 
-inline bool stw_send_update(Projectile* projectile, Vector3 pos, int& rpc_budget)
-{
-	PlayerProjectileUpdate* ppu = stw_get_ppu();
-	if (!ppu || rpc_budget <= 0)
-		return false;
+	inline bool send_update(Projectile* projectile, Vector3 pos, int& rpc_budget)
+	{
+		PlayerProjectileUpdate* ppu = get_ppu();
+		if (!ppu || rpc_budget <= 0)
+			return false;
 
-	ppu->projectileID() = projectile->projectileID();
-	ppu->travelTime() = projectile->traveledTime();
-	ppu->curVelocity() = projectile->currentVelocity();
-	ppu->curPosition() = pos;
+		ppu->projectileID() = projectile->projectileID();
+		ppu->travelTime() = projectile->traveledTime();
+		ppu->curVelocity() = projectile->currentVelocity();
+		ppu->curPosition() = pos;
 
-	LocalPlayer::Entity()->SPU(ppu);
-	RPC_Counter.Increment();
-	rpc_budget--;
-	return true;
-}
+		LocalPlayer::Entity()->SPU(ppu);
+		RPC_Counter.Increment();
+		rpc_budget--;
+		return true;
+	}
 
-// Проверка легальности финальной точки попадания (адаптация check_hit из bullet_tp.h)
-inline bool stw_check_hit(Vector3 hit_position_world, Projectile* projectile, BasePlayer* target_ply)
-{
-	float time_since_last_tick = Time::realtimeSinceStartup() - LocalPlayer::Entity()->lastSentTickTime();
-	float last_tick_time = Mathf::Max(0.f, Mathf::Min(time_since_last_tick, 1.f));
-	float num2 = 1.f + 0.5f;
-	float num9 = 2.f / 60.f;
-	float num10 = 2.f * Mathx::Max(Time::deltaTime(), Time::smoothDeltaTime(), Time::fixedDeltaTime());
-	float num12 = (last_tick_time + num9 + num10) * num2;
+	// Проверка легальности финальной точки попадания (адаптация check_hit из bullet_tp.h)
+	inline bool check_hit(Vector3 hit_position_world, Projectile* projectile, BasePlayer* target_ply)
+	{
+		float time_since_last_tick = Time::realtimeSinceStartup() - LocalPlayer::Entity()->lastSentTickTime();
+		float last_tick_time = Mathf::Max(0.f, Mathf::Min(time_since_last_tick, 1.f));
+		float num2 = 1.f + 0.5f;
+		float num9 = 2.f / 60.f;
+		float num10 = 2.f * Mathx::Max(Time::deltaTime(), Time::smoothDeltaTime(), Time::fixedDeltaTime());
+		float num12 = (last_tick_time + num9 + num10) * num2;
 
-	float num14 = projectile->currentPosition().Distance(hit_position_world) + 0.01f;
-	float num16 = target_ply->MaxVelocity() + target_ply->GetParentVelocity().Magnitude();
-	float num22 = num12 * num16;
-	float num24 = projectile->traveledDistance() + 1.f + projectile->currentPosition().Magnitude() + num22;
+		float num14 = projectile->currentPosition().Distance(hit_position_world) + 0.01f;
+		float num16 = target_ply->MaxVelocity() + target_ply->GetParentVelocity().Magnitude();
+		float num22 = num12 * num16;
+		float num24 = projectile->traveledDistance() + 1.f + projectile->currentPosition().Magnitude() + num22;
 
-	return num14 <= num24;
+		return num14 <= num24;
+	}
 }
 
 bool stw(Projectile* projectile, float deltaTime)
@@ -117,7 +120,7 @@ bool stw(Projectile* projectile, float deltaTime)
 			Vector3 new_position = closest_on_line + direction * amount_needed;
 
 			if (closest_on_line.Distance(new_position) > 1.f ||
-				!GamePhysics::LineOfSight_(closest_on_line, new_position, ProjectileLineOfSightCheck | Terrain | Vehicle_Large, 0.f))
+				!GamePhysics::LineOfSight_(closest_on_line, new_position, ProjectileLineOfSightCheck | Terrain | Vehicle_Large, 0.f, 0))
 				return false;
 
 			closest_on_line = new_position;
@@ -138,7 +141,7 @@ bool stw(Projectile* projectile, float deltaTime)
 		projectile->traveledDistance() += projectile->previousPosition().Distance(projectile->currentPosition());
 		projectile->traveledTime() += projectile->previousPosition().Distance(projectile->currentPosition()) / speed;
 
-		if (!stw_send_update(projectile, projectile->currentPosition(), rpc_budget))
+		if (!stw_impl::send_update(projectile, projectile->currentPosition(), rpc_budget))
 			return false;
 
 		cur_pos = projectile->currentPosition();
@@ -151,7 +154,7 @@ bool stw(Projectile* projectile, float deltaTime)
 		Vector3 head_pos = target_player->transform()->position() + Vector3(0.f, 1.49f, 0.f);
 		Vector3 dir_to_head = (head_pos - cur_pos).Normalized();
 
-		if (!stw_send_update(projectile, cur_pos + dir_to_head * 0.97f, rpc_budget))
+		if (!stw_impl::send_update(projectile, cur_pos + dir_to_head * 0.97f, rpc_budget))
 			return false;
 
 		// Проверяем, что путь от текущей позиции до точки попадания легален
@@ -164,8 +167,7 @@ bool stw(Projectile* projectile, float deltaTime)
 
 		projectile->transform()->set_position(hit_point_world);
 
-		ht->AttackRay().origin = cur_pos;
-		ht->AttackRay().dir = (hit_point_world - cur_pos).Normalized();
+		ht->AttackRay() = Ray(cur_pos, (hit_point_world - cur_pos).Normalized());
 		ht->HitTransform() = head_transform;
 		ht->HitEntity() = target_player;
 		ht->HitPoint() = head_transform->InverseTransformPoint(hit_point_world);
@@ -181,7 +183,7 @@ bool stw(Projectile* projectile, float deltaTime)
 		Vector3 final_hit = ht->HitPointWorld();
 
 		// Защита от нелегальных дистанций (аналог check_hit из BulletTP)
-		if (!stw_check_hit(final_hit, projectile, target_player))
+		if (!stw_impl::check_hit(final_hit, projectile, target_player))
 			return false;
 
 		projectile->DoHit(ht, final_hit, ht->HitNormalWorld());
