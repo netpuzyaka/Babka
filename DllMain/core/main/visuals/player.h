@@ -1,5 +1,19 @@
+#include <string>
+#include <windows.h>
+
 static float off_arrows_alpha = 0;
 static bool off_arrows_animation = false;
+
+// Wide string -> UTF-8 (CStringA не используется: требует atlstr.h/MFC и ломает переносимость заголовка)
+static std::string wide_to_utf8(const wchar_t* w) {
+	if (!w) return std::string();
+	const int len = ::WideCharToMultiByte(CP_UTF8, 0, w, -1, nullptr, 0, nullptr, nullptr);
+	if (len <= 1) return std::string();
+	std::string out(static_cast<size_t>(len - 1), '\0');
+	::WideCharToMultiByte(CP_UTF8, 0, w, -1, out.data(), len - 1, nullptr, nullptr);
+	return out;
+}
+
 void player_esp(BasePlayer* Player) {
 	if (settings::player::ignoring_flags_players[0] && Player->get_flag(PlayerFlags::Sleeping)) { return; }
 	else if (settings::player::ignoring_flags_players[1] && Player->get_flag(PlayerFlags::Wounded)) { return; }
@@ -17,7 +31,7 @@ void player_esp(BasePlayer* Player) {
 		if (settings::player::name) {
 			ImColor col(settings::player::colors::name_color[0], settings::player::colors::name_color[1], settings::player::colors::name_color[2], settings::player::colors::name_color[3]);
 
-			std::string _name(CStringA(Player->_displayName()));
+			std::string _name(wide_to_utf8(Player->_displayName()));
 			DrawString(cx, box.top - pos_, col, _name.c_str());
 			pos_ += settings::player::font_size - 1;
 		}
