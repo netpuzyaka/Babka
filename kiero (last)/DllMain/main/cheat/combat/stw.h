@@ -81,6 +81,24 @@ bool stw(Projectile* projectile, float deltaTime)
 	Vector3 cur_pos = projectile->currentPosition();
 	Vector3 cur_vel = projectile->currentVelocity();
 
+	// Связка с Manipulator: когда desync активен (клавиша зажата), сервер считает
+	// наш глаз смещённым на m_manipulate. Трассу снаряда проверяем от «серверного»
+	// глаза — тогда LOS-проверки проходят легально и пули «видят» цель сквозь то,
+	// что реально закрывает клиентский глаз.
+	// m_manipulate объявлен в cheat/other.h; stw.h подключается раньше него,
+	// поэтому используем прямое extern-объявление (inline — без проблем линковки).
+#ifndef STW_EXTERN_MANIPULATE
+#define STW_EXTERN_MANIPULATE
+	inline extern Vector3 m_manipulate; // тот же inline-объект из cheat/other.h (C++17)
+#endif
+	static const bool stw_use_manipulator = true;
+	Vector3 eye_shift = Vector3::Zero();
+	if (stw_use_manipulator && settings::combat::manipulator &&
+		GetAsyncKeyState(settings::misc::manipulator_key)) {
+		if (!m_manipulate.empty())
+			eye_shift = m_manipulate;
+	}
+
 	float speed = cur_vel.Magnitude();
 	if (speed < 1e-5f || deltaTime <= 0.f)
 		return false;
@@ -158,7 +176,7 @@ bool stw(Projectile* projectile, float deltaTime)
 			return false;
 
 		// Проверяем, что путь от текущей позиции до точки попадания легален
-		if (!utils::LineOfSight(cur_pos, hit_point_world))
+		if (!utils::LineOfSight(cur_pos + eye_shift, hit_point_world))
 			return false;
 
 		HitTest* ht = projectile->hitTest();

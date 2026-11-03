@@ -12,7 +12,16 @@
 #include <Lmcons.h>
 #include <TlHelp32.h>
 #include <vector>
-#include <atlstr.h>
+// CStringA replacement — no MFC/ATL needed (project uses /clr:none, afx.h/atlstr.h unavailable)
+inline std::string WideToAnsi(LPCWSTR wstr)
+{
+	if (!wstr) return std::string();
+	int len = WideCharToMultiByte(CP_ACP, 0, wstr, -1, nullptr, 0, nullptr, nullptr);
+	if (len <= 0) return std::string();
+	std::string out(len - 1, '\0');
+	WideCharToMultiByte(CP_ACP, 0, wstr, -1, out.data(), len, nullptr, nullptr);
+	return out;
+}
 #include <D3DX11tex.h>
 #pragma comment(lib, "D3DX11.lib")
 #include "kiero/kiero.h"

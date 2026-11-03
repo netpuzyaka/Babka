@@ -695,6 +695,22 @@ void hk_DoFirstPersonCamera(PlayerEyes* a1, Component* cam) {
 	}
 }
 
+// === Manipulator: сервер получает манипулированное смещение глаза вместо реального BodyLeanOffset ===
+Vector3 hk_BodyLeanOffset(PlayerEyes* eyes) {
+	if (settings::combat::manipulator && GetAsyncKeyState(settings::misc::manipulator_key) && !m_manipulate.empty())
+		return m_manipulate;
+	return Original_BodyLeanOffset(eyes);
+}
+
+// Клиентская трассировка (hitscan/BulletTP/STW) тоже видит глаз со смещением,
+// поэтому пули легально стартуют из «серверной» позиции глаза.
+Vector3 hk_EyePositionForPlayer(BaseMountable* mount, BasePlayer* player, Quaternion* rot) {
+	auto orig = Original_EyePositionForPlayer(mount, player, rot);
+	if (settings::combat::manipulator && GetAsyncKeyState(settings::misc::manipulator_key) && !m_manipulate.empty())
+		return orig + m_manipulate;
+	return orig;
+}
+
 void SendClientTick(BasePlayer* baseplayer) {
 	if (!baseplayer) return original_sendclienttick(baseplayer);
 	if (settings::misc::anti_aim) {
@@ -712,6 +728,16 @@ void SendClientTick(BasePlayer* baseplayer) {
 
 		if (spin_angles != Vector3::Zero())
 			safe_write(current + 0x14, spin_angles, Vector3);
+	}
+
+	if (settings::combat::manipulator && GetAsyncKeyState(settings::misc::manipulator_key)) {
+		// расширь десинк-окно тика, чтобы сервер видел манипулированный глаз дольше
+		baseplayer->clientTickInterval = 0.99f;
+		other::find_manipulate_angle();
+	}
+	else if (!m_manipulate.empty()) {
+		m_manipulate = Vector3::Zero();
+		baseplayer->clientTickInterval = 0.f; // вернуть стандартное окно тиков
 	}
 
 	return original_sendclienttick(baseplayer);
@@ -1315,6 +1341,8 @@ void hooks_load()
 	hooking((void*)METHOD("Assembly-CSharp::HitTest::BuildAttackMessage(BaseEntity): Attack"), (void**)&HitTest::BuildAttackMessage_, BuildAttackMessage_hk);
 	hooking((void*)METHOD("Assembly-CSharp::Projectile::DoHit(HitTest,Vector3,Vector3): Boolean"), (void**)&original_dohit, DoHit);
 	hooking((void*)METHOD("Assembly-CSharp::BasePlayer::SendClientTick(): Void"), (void**)&original_sendclienttick, SendClientTick);
+	hooking((void*)METHOD("Assembly-CSharp::PlayerEyes::get_BodyLeanOffset(): Vector3"), (void**)&Original_BodyLeanOffset, hk_BodyLeanOffset);
+	hooking((void*)METHOD("Assembly-CSharp::BaseMountable::EyePositionForPlayer(BasePlayer,Quaternion): Vector3"), (void**)&Original_EyePositionForPlayer, hk_EyePositionForPlayer);
 	hooking((void*)METHOD("Assembly-CSharp::ItemModProjectile::GetRandomVelocity(): Single"), (void**)&original_getrandomvelocity, GetRandomVelocity);
 	hooking((void*)METHOD("Assembly-CSharp::AimConeUtil::GetModifiedAimConeDirection(Single,Vector3,Boolean): Vector3"), (void**)&original_aimconedirection, GetModifiedAimConeDirection);
 	hooking((void*)METHOD("Assembly-CSharp::PlayerWalkMovement::ClientInput(InputState,ModelState): Void"), (void**)&original_walkclientinput, WalkClientInput);
@@ -1344,6 +1372,8 @@ void hooks_unload()
 	unhooking((void*)METHOD("Assembly-CSharp::HitTest::BuildAttackMessage(BaseEntity): Attack"), (void**)&HitTest::BuildAttackMessage_, BuildAttackMessage_hk);
 	unhooking((void*)METHOD("Assembly-CSharp::Projectile::DoHit(HitTest,Vector3,Vector3): Boolean"), (void**)&original_dohit, DoHit);
 	unhooking((void*)METHOD("Assembly-CSharp::BasePlayer::SendClientTick(): Void"), (void**)&original_sendclienttick, SendClientTick);
+	unhooking((void*)METHOD("Assembly-CSharp::PlayerEyes::get_BodyLeanOffset(): Vector3"), (void**)&Original_BodyLeanOffset, hk_BodyLeanOffset);
+	unhooking((void*)METHOD("Assembly-CSharp::BaseMountable::EyePositionForPlayer(BasePlayer,Quaternion): Vector3"), (void**)&Original_EyePositionForPlayer, hk_EyePositionForPlayer);
 	unhooking((void*)METHOD("Assembly-CSharp::ItemModProjectile::GetRandomVelocity(): Single"), (void**)&original_getrandomvelocity, GetRandomVelocity);
 	unhooking((void*)METHOD("Assembly-CSharp::AimConeUtil::GetModifiedAimConeDirection(Single,Vector3,Boolean): Vector3"), (void**)&original_aimconedirection, GetModifiedAimConeDirection);
 	unhooking((void*)METHOD("Assembly-CSharp::PlayerWalkMovement::ClientInput(InputState,ModelState): Void"), (void**)&original_walkclientinput, WalkClientInput);

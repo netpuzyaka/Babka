@@ -83,8 +83,8 @@ void enity_loop() {
 			if (settings::combat::target_name)
 			{
 				std::string string;
-				std::string _name(CStringA(TargetPlayer->_displayName()));
-				char buf[256] = { 0 }; sprintf_s(buf, (CStringA(TargetPlayer->_displayName())));
+				std::string _name(WideToAnsi(TargetPlayer->_displayName()));
+				char buf[256] = { 0 }; sprintf_s(buf, "%s", WideToAnsi(TargetPlayer->_displayName()).c_str());
 				string += buf;
 				DrawString(xs, ys - 50, ImColor(255, 255, 255), string.c_str());
 			}

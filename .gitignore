@@ -1,0 +1,14 @@
+# Visual Studio cache / user settings
+.vs/
+*.vcxproj.user
+
+# Build intermediates (Temp = IntDir per vcxproj)
+kiero (last)/x64/Temp/
+*.obj
+*.ilk
+*.exp
+
+# Local VS database files
+*.suo
+*.db
+sdl-check-*
