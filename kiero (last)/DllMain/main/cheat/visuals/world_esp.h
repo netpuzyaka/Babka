@@ -135,7 +135,7 @@ void hackablecrate(DWORD64 ObjectClass, DWORD64 Object, char* buff) {
 					auto* m_Text = reinterpret_cast<pUncStr>(safe_read(timerText + 0xD0, DWORD64));
 					ImColor color;
 
-					std::string _name((LPCSTR)CStringA(m_Text->str));
+					std::string _name(WideToAnsi(m_Text->str).c_str());
 
 					color = ImColor(255, 69, 0);
 

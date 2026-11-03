@@ -64,7 +64,7 @@ void render_esp_player(BasePlayer* BP)
 	{
 		if (settings::visual::name)
 		{
-			std::string _name(CStringA(BP->_displayName()));
+			std::string _name(WideToAnsi(BP->_displayName()));
 			DrawString(left.x - Entity_w, top.y - 8.f, ImColor(settings::visual::name_color[0], settings::visual::name_color[1], settings::visual::name_color[2]), _name.c_str());
 			pos += settings::visual::font_scale - 1;
 		}
@@ -269,7 +269,7 @@ void render_esp_npc(BasePlayer* BP)
 		if (settings::npc::name)
 		{
 
-			std::string _name(CStringA(BP->_displayName()));
+			std::string _name(WideToAnsi(BP->_displayName()));
 			DrawString(left.x - Entity_w, top.y - 8.f, ImColor(255, 196, 0), _name.c_str());
 			pos += settings::visual::font_scale - 1;
 		}
