@@ -12,6 +12,11 @@
 #include <Lmcons.h>
 #include <TlHelp32.h>
 #include <vector>
+#ifndef _AFX
+#define _AFX    // force full MFC (CString/CStringA) from afx.h below
+#endif
+#include <afx.h>       // CString, CStringA (wide-char build -> W2A works)
+#include <afxwin.h>    // required by MFC headers
 #include <atlstr.h>
 #include <D3DX11tex.h>
 #pragma comment(lib, "D3DX11.lib")
