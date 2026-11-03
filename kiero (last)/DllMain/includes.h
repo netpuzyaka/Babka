@@ -6,7 +6,6 @@
 #include <filesystem>
 #include "thread"
 #include <iostream>
-#include "main/auth/json.hpp"
 #include <d3d11.h>
 #include <dxgi.h>
 #include <string>
@@ -55,8 +54,6 @@ namespace font
 
 Discord* g_Discord;
 
-#include "main/auth/auth.hpp"
-#include "main/auth/security.h"
 #include "main/menu.h"
 
 typedef HRESULT(__stdcall* Present) (IDXGISwapChain* pSwapChain, UINT SyncInterval, UINT Flags);

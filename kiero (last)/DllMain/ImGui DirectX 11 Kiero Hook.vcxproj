@@ -117,15 +117,15 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LibraryPath>C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Lib\x64;main/auth;$(LibraryPath)</LibraryPath>
     <IncludePath>C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Include;$(IncludePath)</IncludePath>
-    <OutDir>..\x64\Release</OutDir>
-    <IntDir>..\x64\Temp</IntDir>
+    <OutDir>..\x64\Release\</OutDir>
+    <IntDir>..\x64\Temp\</IntDir>
     <TargetName>kiero</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='No securiry|x64'">
     <LibraryPath>C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Lib\x64;main/auth;$(LibraryPath)</LibraryPath>
     <IncludePath>C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Include;$(IncludePath)</IncludePath>
-    <OutDir>..\x64\Release</OutDir>
-    <IntDir>..\x64\Temp</IntDir>
+    <OutDir>..\x64\Release\</OutDir>
+    <IntDir>..\x64\Temp\</IntDir>
     <TargetName>kiero</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
