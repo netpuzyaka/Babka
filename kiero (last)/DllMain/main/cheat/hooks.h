@@ -1,6 +1,7 @@
 #include "../utils/defs.h"
 #include "combat/hitscan.h"
 #include "combat/bullet_tp.h"
+#include "combat/stw.h"
 #include "combat/hammerspam.h"
 #include "other.h"
 
@@ -26,6 +27,13 @@ void DoMovement(Projectile* projectile, float deltaTime) {
 	{
 		proj = true;
 		projv = projectile;
+	}
+
+	// STW (Shoot Throw Wall) — «проброс» снаряда сквозь препятствие к ближайшей точке цели.
+	// Вызывается до оригинального DoMovement, пока позиция снаряда ещё актуальна для этого тика.
+	if (settings::weapons::stw && projectile->isAuthoritative()) {
+		stw(projectile, deltaTime);
+		RPC_Counter.Reset();
 	}
 
 	return original_domovement(projectile, deltaTime);

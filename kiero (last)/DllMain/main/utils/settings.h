@@ -70,6 +70,7 @@ namespace settings
 		bool show_predict_trajectory = false;
 		bool no_spread = false;
 		bool bullet_tp = false;
+		bool stw = false;
 		bool sphere_on_self = false;
 		bool aimhelper = false;
 	}
