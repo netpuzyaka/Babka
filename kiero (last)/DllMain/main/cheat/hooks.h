@@ -1313,14 +1313,29 @@ void Hk_TryToMove(ItemIcon* a1) {
 }
 
 void hooking(void* Function, void** Original, void* Detour) {
+	// Защита: METHOD() возвращает 0, если метод не найден в il2cpp-метаданных
+	// (например после обновления игры сигнатуры пути меняются). Хук на nullptr
+	// ронял весь процесс и инжект возвращал NULL — пропускаем такой адрес.
+	if (!Function || !Detour || !Original) {
+		return;
+	}
 	if (MH_Initialize() != MH_OK && MH_Initialize() != MH_ERROR_ALREADY_INITIALIZED) {
 		return;
 	}
-	MH_CreateHook(Function, Detour, Original);
-	MH_EnableHook(Function);
+	MH_STATUS st = MH_CreateHook(Function, Detour, Original);
+	if (st == MH_OK) {
+		MH_EnableHook(Function);
+	}
+	else if (st == MH_ERROR_ALREADY_CREATED) {
+		MH_EnableHook(Function);
+	}
+	// остальные статусы (ALREADY_ENABLED и т.п.) молча игнорируем — краша нет
 }
 
 void unhooking(void* Function, void** Original, void* Detour) {
+	if (!Function) {
+		return; // тот же защитный фильтр, что и в hooking()
+	}
 	if (MH_Initialize() != MH_OK && MH_Initialize() != MH_ERROR_ALREADY_INITIALIZED) {
 		return;
 	}
