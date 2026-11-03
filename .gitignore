@@ -12,3 +12,4 @@ kiero (last)/x64/Temp/
 *.suo
 *.db
 sdl-check-*
+STW_Manipulator_fix.patch
