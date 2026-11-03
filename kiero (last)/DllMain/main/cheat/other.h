@@ -2,7 +2,7 @@
 #include <corecrt_math_defines.h>
 #include <utility>
 
-Vector3 m_manipulate = Vector3::Zero();
+inline Vector3 m_manipulate = Vector3::Zero(); // inline — безопасно при включении из нескольких TU
 float VFlyhack = 0.0f;
 float HFlyhack = 0.0f;
 float VMaxFlyhack = 0.0f;
