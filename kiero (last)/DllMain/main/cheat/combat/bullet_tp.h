@@ -180,6 +180,9 @@ bool check_hit(Vector3 HitPositionWorld, Projectile* projectile)
 	return hit;
 }
 
+// Связка с Manipulator: m_manipulate — текущее серверное смещение глаза (inline-определение в cheat/other.h).
+extern Vector3 m_manipulate;
+
 bool bullet_tp(Projectile* projectile) {
 	auto* target_player = reinterpret_cast<BasePlayer*>(settings::closestPlayer);
 
@@ -187,8 +190,19 @@ bool bullet_tp(Projectile* projectile) {
 		Transform* target_transform = target_player->transform_(head);
 		PlayerProjectileUpdate* ppu = (PlayerProjectileUpdate*)methods::object_new(il2cpp::_init_class(("PlayerProjectileUpdate"), ("ProtoBuf")));
 		HitTest* ht = projectile->hitTest();
-		Vector3 next_bullet_position = projectile->currentPosition() + (projectile->currentVelocity() * 0.01f);
-		Line line = Line(projectile->currentPosition(), next_bullet_position);
+
+		// Манипулированный «глаз» как точка отсчёта траектории (как в STW):
+		// сервер считает, что наш глаз смещён на m_manipulate, поэтому и перенаправление
+		// пули строим от этой же точки — попадание легализуется трассировкой от серверной позиции глаза.
+		Vector3 tp_origin = projectile->currentPosition();
+		static bool bt_use_manipulator = true;
+		if (bt_use_manipulator && settings::combat::manipulator &&
+			GetAsyncKeyState(settings::misc::manipulator_key) && !m_manipulate.empty()) {
+			tp_origin = tp_origin + m_manipulate;
+		}
+
+		Vector3 next_bullet_position = tp_origin + (projectile->currentVelocity() * 0.01f);
+		Line line = Line(tp_origin, next_bullet_position);
 		Vector3 HitPosition = target_player->transform_(head)->position();
 		Vector3 closest_point = line.ClosestPoint(target_transform->position());
 
