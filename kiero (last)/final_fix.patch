@@ -1,0 +1,44 @@
+diff --git a/kiero (last)/DllMain/main/cheat/combat/stw.h b/kiero (last)/DllMain/main/cheat/combat/stw.h
+index 1448fe7..8cc21e4 100644
+--- a/kiero (last)/DllMain/main/cheat/combat/stw.h	
++++ b/kiero (last)/DllMain/main/cheat/combat/stw.h	
+@@ -87,17 +87,13 @@ bool stw(Projectile* projectile, float deltaTime)
+ 	// что реально закрывает клиентский глаз.
+ 	// m_manipulate объявлен в cheat/other.h; stw.h подключается раньше него,
+ 	// поэтому используем прямое extern-объявление (inline — без проблем линковки).
+-#ifndef STW_EXTERN_MANIPULATE
+-#define STW_EXTERN_MANIPULATE
+-	inline Vector3& stw_manipulate_ref();
+-#endif
++	extern Vector3 m_manipulate; // C++17 inline-определение в cheat/other.h; здесь лишь объявление (без LNK2001)
+ 	static const bool stw_use_manipulator = true;
+ 	Vector3 eye_shift = Vector3::Zero();
+ 	if (stw_use_manipulator && settings::combat::manipulator &&
+ 		GetAsyncKeyState(settings::misc::manipulator_key)) {
+-		Vector3& manip = stw_manipulate_ref();
+-		if (!manip.empty())
+-			eye_shift = manip;
++		if (!m_manipulate.empty())
++			eye_shift = m_manipulate;
+ 	}
+ 
+ 	float speed = cur_vel.Magnitude();
+diff --git a/kiero (last)/DllMain/main/cheat/hooks.h b/kiero (last)/DllMain/main/cheat/hooks.h
+index 603a682..6578c46 100644
+--- a/kiero (last)/DllMain/main/cheat/hooks.h	
++++ b/kiero (last)/DllMain/main/cheat/hooks.h	
+@@ -717,12 +717,12 @@ void SendClientTick(BasePlayer* baseplayer) {
+ 
+ 	// Манипулятор: расширяем desync-окно и пересчитываем выгодную точку смещения глаза.
+ 	if (settings::combat::manipulator && GetAsyncKeyState(settings::misc::manipulator_key)) {
+-		baseplayer->clientTickInterval() = 0.99f;
++		baseplayer->clientTickInterval = 0.99f; // FIELD-поле float из sdk.h (без скобок!)
+ 		if (settings::closestPlayer != NULL)
+ 			other::find_manipulate_angle();
+ 	}
+ 	else if (!m_manipulate.empty()) {
+-		baseplayer->clientTickInterval() = 0.05f;
++		baseplayer->clientTickInterval = 0.05f;
+ 		m_manipulate = Vector3::Zero();
+ 	}
+ 
