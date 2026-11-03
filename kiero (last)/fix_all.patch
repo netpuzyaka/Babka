@@ -1,0 +1,131 @@
+diff --git a/.gitignore b/.gitignore
+index b714ec6..ec9bb4b 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -12,3 +12,4 @@ kiero (last)/x64/Temp/
+ *.suo
+ *.db
+ sdl-check-*
++STW_Manipulator_fix.patch
+diff --git a/kiero (last)/DllMain/main/cheat/combat/stw.h b/kiero (last)/DllMain/main/cheat/combat/stw.h
+index 1448fe7..7335061 100644
+--- a/kiero (last)/DllMain/main/cheat/combat/stw.h	
++++ b/kiero (last)/DllMain/main/cheat/combat/stw.h	
+@@ -86,18 +86,17 @@ bool stw(Projectile* projectile, float deltaTime)
+ 	// глаза — тогда LOS-проверки проходят легально и пули «видят» цель сквозь то,
+ 	// что реально закрывает клиентский глаз.
+ 	// m_manipulate объявлен в cheat/other.h; stw.h подключается раньше него,
+-	// поэтому используем прямое extern-объявление (inline — без проблем линковки).
++	// поэтому здесь только extern-объявление (определение inline-переменной общее на все TU).
+ #ifndef STW_EXTERN_MANIPULATE
+ #define STW_EXTERN_MANIPULATE
+-	inline Vector3& stw_manipulate_ref();
++	extern Vector3 m_manipulate; // объявление на inline-переменную из cheat/other.h (C++17, общая для всех TU)
+ #endif
+ 	static const bool stw_use_manipulator = true;
+ 	Vector3 eye_shift = Vector3::Zero();
+ 	if (stw_use_manipulator && settings::combat::manipulator &&
+ 		GetAsyncKeyState(settings::misc::manipulator_key)) {
+-		Vector3& manip = stw_manipulate_ref();
+-		if (!manip.empty())
+-			eye_shift = manip;
++		if (!m_manipulate.empty())
++			eye_shift = m_manipulate;
+ 	}
+ 
+ 	float speed = cur_vel.Magnitude();
+diff --git a/kiero (last)/DllMain/main/cheat/hooks.h b/kiero (last)/DllMain/main/cheat/hooks.h
+index 603a682..e38f0a9 100644
+--- a/kiero (last)/DllMain/main/cheat/hooks.h	
++++ b/kiero (last)/DllMain/main/cheat/hooks.h	
+@@ -695,16 +695,15 @@ void hk_DoFirstPersonCamera(PlayerEyes* a1, Component* cam) {
+ 	}
+ }
+ 
+-// ===== Manipulator: хуки (порт из 222333666, адаптация под SDK проекта) =====
+-// Отдаём серверу манипулированное смещение глаза вместо реального BodyLeanOffset.
++// === Manipulator: сервер получает манипулированное смещение глаза вместо реального BodyLeanOffset ===
+ Vector3 hk_BodyLeanOffset(PlayerEyes* eyes) {
+ 	if (settings::combat::manipulator && GetAsyncKeyState(settings::misc::manipulator_key) && !m_manipulate.empty())
+ 		return m_manipulate;
+ 	return Original_BodyLeanOffset(eyes);
+ }
+ 
+-// Смещаем позицию глаз на величину манипуляции — снаряды стартуют из «серверного» глаза,
+-// поэтому пули легально летят из той же точки, куда смотрит сервер.
++// Клиентская трассировка (hitscan/BulletTP/STW) тоже видит глаз со смещением,
++// поэтому пули легально стартуют из «серверной» позиции глаза.
+ Vector3 hk_EyePositionForPlayer(BaseMountable* mount, BasePlayer* player, Quaternion* rot) {
+ 	auto orig = Original_EyePositionForPlayer(mount, player, rot);
+ 	if (settings::combat::manipulator && GetAsyncKeyState(settings::misc::manipulator_key) && !m_manipulate.empty())
+@@ -714,18 +713,6 @@ Vector3 hk_EyePositionForPlayer(BaseMountable* mount, BasePlayer* player, Quater
+ 
+ void SendClientTick(BasePlayer* baseplayer) {
+ 	if (!baseplayer) return original_sendclienttick(baseplayer);
+-
+-	// Манипулятор: расширяем desync-окно и пересчитываем выгодную точку смещения глаза.
+-	if (settings::combat::manipulator && GetAsyncKeyState(settings::misc::manipulator_key)) {
+-		baseplayer->clientTickInterval() = 0.99f;
+-		if (settings::closestPlayer != NULL)
+-			other::find_manipulate_angle();
+-	}
+-	else if (!m_manipulate.empty()) {
+-		baseplayer->clientTickInterval() = 0.05f;
+-		m_manipulate = Vector3::Zero();
+-	}
+-
+ 	if (settings::misc::anti_aim) {
+ 
+ 		auto input = safe_read(baseplayer + Offsets::BasePlayer_input, uintptr_t);
+@@ -743,6 +730,16 @@ void SendClientTick(BasePlayer* baseplayer) {
+ 			safe_write(current + 0x14, spin_angles, Vector3);
+ 	}
+ 
++	if (settings::combat::manipulator && GetAsyncKeyState(settings::misc::manipulator_key)) {
++		// расширь десинк-окно тика, чтобы сервер видел манипулированный глаз дольше
++		baseplayer->clientTickInterval = 0.99f;
++		other::find_manipulate_angle();
++	}
++	else if (!m_manipulate.empty()) {
++		m_manipulate = Vector3::Zero();
++		baseplayer->clientTickInterval = 0.f; // вернуть стандартное окно тиков
++	}
++
+ 	return original_sendclienttick(baseplayer);
+ }
+ 
+@@ -1344,6 +1341,8 @@ void hooks_load()
+ 	hooking((void*)METHOD("Assembly-CSharp::HitTest::BuildAttackMessage(BaseEntity): Attack"), (void**)&HitTest::BuildAttackMessage_, BuildAttackMessage_hk);
+ 	hooking((void*)METHOD("Assembly-CSharp::Projectile::DoHit(HitTest,Vector3,Vector3): Boolean"), (void**)&original_dohit, DoHit);
+ 	hooking((void*)METHOD("Assembly-CSharp::BasePlayer::SendClientTick(): Void"), (void**)&original_sendclienttick, SendClientTick);
++	hooking((void*)METHOD("Assembly-CSharp::PlayerEyes::get_BodyLeanOffset(): Vector3"), (void**)&Original_BodyLeanOffset, hk_BodyLeanOffset);
++	hooking((void*)METHOD("Assembly-CSharp::BaseMountable::EyePositionForPlayer(BasePlayer,Quaternion): Vector3"), (void**)&Original_EyePositionForPlayer, hk_EyePositionForPlayer);
+ 	hooking((void*)METHOD("Assembly-CSharp::ItemModProjectile::GetRandomVelocity(): Single"), (void**)&original_getrandomvelocity, GetRandomVelocity);
+ 	hooking((void*)METHOD("Assembly-CSharp::AimConeUtil::GetModifiedAimConeDirection(Single,Vector3,Boolean): Vector3"), (void**)&original_aimconedirection, GetModifiedAimConeDirection);
+ 	hooking((void*)METHOD("Assembly-CSharp::PlayerWalkMovement::ClientInput(InputState,ModelState): Void"), (void**)&original_walkclientinput, WalkClientInput);
+@@ -1353,8 +1352,6 @@ void hooks_load()
+ 	hooking((void*)METHOD("Assembly-CSharp::BaseCombatEntity::DoHitNotify(HitInfo): Void"), (void**)&original_dohitnotify, DoHitNotify);
+ 	hooking((void*)METHOD("Assembly-CSharp::CursorManager::Update(): Void"), (void**)&CursorManager::Update_, CursorManagerUpdate_hk);
+ 	hooking((void*)METHOD("Assembly-CSharp::HitInfo::get_isHeadshot(): Boolean"), (void**)&original_getisheadshot, get_isHeadshot);
+-	hooking((void*)METHOD("Assembly-CSharp::PlayerEyes::get_BodyLeanOffset(): Vector3"), (void**)&Original_BodyLeanOffset, hk_BodyLeanOffset);
+-	hooking((void*)METHOD("Assembly-CSharp::BaseMountable::EyePositionForPlayer(BasePlayer,Quaternion): Vector3"), (void**)&Original_EyePositionForPlayer, hk_EyePositionForPlayer);
+ }
+ 
+ void hooks_unload()
+@@ -1375,6 +1372,8 @@ void hooks_unload()
+ 	unhooking((void*)METHOD("Assembly-CSharp::HitTest::BuildAttackMessage(BaseEntity): Attack"), (void**)&HitTest::BuildAttackMessage_, BuildAttackMessage_hk);
+ 	unhooking((void*)METHOD("Assembly-CSharp::Projectile::DoHit(HitTest,Vector3,Vector3): Boolean"), (void**)&original_dohit, DoHit);
+ 	unhooking((void*)METHOD("Assembly-CSharp::BasePlayer::SendClientTick(): Void"), (void**)&original_sendclienttick, SendClientTick);
++	unhooking((void*)METHOD("Assembly-CSharp::PlayerEyes::get_BodyLeanOffset(): Vector3"), (void**)&Original_BodyLeanOffset, hk_BodyLeanOffset);
++	unhooking((void*)METHOD("Assembly-CSharp::BaseMountable::EyePositionForPlayer(BasePlayer,Quaternion): Vector3"), (void**)&Original_EyePositionForPlayer, hk_EyePositionForPlayer);
+ 	unhooking((void*)METHOD("Assembly-CSharp::ItemModProjectile::GetRandomVelocity(): Single"), (void**)&original_getrandomvelocity, GetRandomVelocity);
+ 	unhooking((void*)METHOD("Assembly-CSharp::AimConeUtil::GetModifiedAimConeDirection(Single,Vector3,Boolean): Vector3"), (void**)&original_aimconedirection, GetModifiedAimConeDirection);
+ 	unhooking((void*)METHOD("Assembly-CSharp::PlayerWalkMovement::ClientInput(InputState,ModelState): Void"), (void**)&original_walkclientinput, WalkClientInput);
+@@ -1384,6 +1383,4 @@ void hooks_unload()
+ 	unhooking((void*)METHOD("Assembly-CSharp::BaseCombatEntity::DoHitNotify(HitInfo): Void"), (void**)&original_dohitnotify, DoHitNotify);
+ 	unhooking((void*)METHOD("Assembly-CSharp::CursorManager::Update(): Void"), (void**)&CursorManager::Update_, CursorManagerUpdate_hk);
+ 	unhooking((void*)METHOD("Assembly-CSharp::HitInfo::get_isHeadshot(): Boolean"), (void**)&original_getisheadshot, get_isHeadshot);
+-	unhooking((void*)METHOD("Assembly-CSharp::PlayerEyes::get_BodyLeanOffset(): Vector3"), (void**)&Original_BodyLeanOffset, hk_BodyLeanOffset);
+-	unhooking((void*)METHOD("Assembly-CSharp::BaseMountable::EyePositionForPlayer(BasePlayer,Quaternion): Vector3"), (void**)&Original_EyePositionForPlayer, hk_EyePositionForPlayer);
+ }
+\ No newline at end of file
