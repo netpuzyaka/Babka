@@ -22,8 +22,22 @@
     <VCProjectVersion>16.0</VCProjectVersion>
     <ProjectGuid>{04B17470-CB82-4724-904B-25445926AB86}</ProjectGuid>
     <RootNamespace>ImGuiDirectX11KieroHook</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion Condition="'$(WindowsTargetPlatformVersion)' == ''">10.0</WindowsTargetPlatformVersion>
     <ProjectName>BabkaClient</ProjectName>
+  </PropertyGroup>
+  <!-- Автономный выбор PlatformToolset (исправление MSB8020):
+       если тулсет v143 не установлен в данной Visual Studio, подхватываем
+       первый доступный тулсет текущей установки VS. Поиск выполняется по каталогам
+       $(VCTargetsPath)..\Platforms\Win32\PlatformToolsets\<toolset> от более новых
+       (v145/v144) к более старым (v142/v141/v140). Если ничего не найдено — оставляем v143. -->
+  <PropertyGroup Condition="'$(ApplicationType)' == ''">
+    <_FoundPlatformToolset Condition="Exists('$(VCTargetsPath)\..\Platforms\Win32\PlatformToolsets\v145\')">v145</_FoundPlatformToolset>
+    <_FoundPlatformToolset Condition="'$(_FoundPlatformToolset)' == '' And Exists('$(VCTargetsPath)\..\Platforms\Win32\PlatformToolsets\v144\')">v144</_FoundPlatformToolset>
+    <_FoundPlatformToolset Condition="'$(_FoundPlatformToolset)' == '' And Exists('$(VCTargetsPath)\..\Platforms\Win32\PlatformToolsets\v143\')">v143</_FoundPlatformToolset>
+    <_FoundPlatformToolset Condition="'$(_FoundPlatformToolset)' == '' And Exists('$(VCTargetsPath)\..\Platforms\Win32\PlatformToolsets\v142\')">v142</_FoundPlatformToolset>
+    <_FoundPlatformToolset Condition="'$(_FoundPlatformToolset)' == '' And Exists('$(VCTargetsPath)\..\Platforms\Win32\PlatformToolsets\v141\')">v141</_FoundPlatformToolset>
+    <_FoundPlatformToolset Condition="'$(_FoundPlatformToolset)' == '' And Exists('$(VCTargetsPath)\..\Platforms\Win32\PlatformToolsets\v140\')">v140</_FoundPlatformToolset>
+    <PlatformToolset Condition="'$(_FoundPlatformToolset)' != ''">$(_FoundPlatformToolset)</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
