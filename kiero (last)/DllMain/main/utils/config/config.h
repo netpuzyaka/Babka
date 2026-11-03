@@ -167,6 +167,7 @@ private:
 
 		SetupValue(settings::weapons::bullet_tp, false, ("Combat"), ("Bullet tp"));
 		SetupValue(settings::weapons::stw, false, ("Combat"), ("STW"));
+		SetupValue(settings::combat::manipulator, false, ("Combat"), ("Manipulator"));
 		SetupValue(settings::combat::hit_scan, false, ("Combat"), ("Hit scan"));
 		SetupValue(settings::combat::autoreload, false, ("Combat"), ("Auto reload"));
 		SetupValue(settings::combat::ignore_players_type[0], false, ("Combat"), ("ignore_players_type 0"));

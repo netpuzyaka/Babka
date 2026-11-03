@@ -145,6 +145,8 @@ void menu()
                         edited::Checkbox(("Show radius"), ("Drawing the bullet teleport radius"), &settings::weapons::show_radius);
                     }
                     edited::Checkbox(("STW"), ("Shoot Throw Wall - redirect bullets through walls to closest point on target"), &settings::weapons::stw);
+                    edited::Checkbox(("Manipulator"), ("Desync eye position: server sees your eyes at a manipulated offset, so bullets legally originate from it. Works in combo with BulletTP/STW/hitscan while the key is held"), &settings::combat::manipulator);
+                    edited::Keybind(("Manipulator key"), ("Hold this key to activate the manipulator desync"), &settings::misc::manipulator_key);
                 }
 
                 edited::EndChild();
