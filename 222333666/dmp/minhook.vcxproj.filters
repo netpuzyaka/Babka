@@ -1,0 +1,388 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="source">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="source\main">
+      <UniqueIdentifier>{67caad19-5894-490a-9d69-dbb22224f72b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\main\hooks">
+      <UniqueIdentifier>{bf6a9dc9-dc11-4200-9d44-a2ee2b6790d3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\main\hooks\minhook">
+      <UniqueIdentifier>{4a9c7b7a-9159-43f2-80df-6d7bc4d754c9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\main\hooks\minhook\HDE">
+      <UniqueIdentifier>{ccd40a52-559f-4372-8ac9-b4f6ffd5b701}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\main\core">
+      <UniqueIdentifier>{5f392fa9-1698-4200-a62c-2ab8633b0371}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\main\render">
+      <UniqueIdentifier>{03a8b386-acf1-4ca9-82c5-2098da2d41c6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\main\render\menu">
+      <UniqueIdentifier>{f89ffed9-05ce-4fb9-a444-98b2f858638d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\main\render\menu\imgui">
+      <UniqueIdentifier>{117bdcbc-a7e4-44e0-9ab2-e03ace856803}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\main\core\sdk">
+      <UniqueIdentifier>{9345b5da-4641-4db4-80a2-18474cef01bc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\main\core\main">
+      <UniqueIdentifier>{c4e3de37-ef91-4472-963d-c6a9b106370f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\main\core\main\ent">
+      <UniqueIdentifier>{2ea38aa1-f453-4a88-a836-0105b9f0a394}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\main\render\menu\new_menu">
+      <UniqueIdentifier>{59b93bb6-a279-4459-b8cd-4b2a97208d42}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Cheat\Hooks\minhook\src\buffer.h">
+      <Filter>source\main\hooks\minhook\HDE</Filter>
+    </ClInclude>
+    <ClInclude Include="Cheat\Hooks\minhook\src\HDE\hde32.h">
+      <Filter>source\main\hooks\minhook\HDE</Filter>
+    </ClInclude>
+    <ClInclude Include="Cheat\Hooks\minhook\src\HDE\hde64.h">
+      <Filter>source\main\hooks\minhook\HDE</Filter>
+    </ClInclude>
+    <ClInclude Include="Cheat\Hooks\minhook\include\MinHook.h">
+      <Filter>source\main\hooks\minhook\HDE</Filter>
+    </ClInclude>
+    <ClInclude Include="Cheat\Hooks\minhook\src\HDE\pstdint.h">
+      <Filter>source\main\hooks\minhook\HDE</Filter>
+    </ClInclude>
+    <ClInclude Include="Cheat\Hooks\minhook\src\HDE\table32.h">
+      <Filter>source\main\hooks\minhook\HDE</Filter>
+    </ClInclude>
+    <ClInclude Include="Cheat\Hooks\minhook\src\HDE\table64.h">
+      <Filter>source\main\hooks\minhook\HDE</Filter>
+    </ClInclude>
+    <ClInclude Include="Cheat\Hooks\minhook\src\trampoline.h">
+      <Filter>source\main\hooks\minhook\HDE</Filter>
+    </ClInclude>
+    <ClInclude Include="Cheat\Visuals\menu\imgui\imconfig.h">
+      <Filter>source\main\render\menu\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="Cheat\Visuals\menu\imgui\imgui.h">
+      <Filter>source\main\render\menu\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="Cheat\Visuals\menu\imgui\imgui_impl_dx11.h">
+      <Filter>source\main\render\menu\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="Cheat\Visuals\menu\imgui\imgui_impl_win32.h">
+      <Filter>source\main\render\menu\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="Cheat\Visuals\menu\imgui\imgui_stdlib.h">
+      <Filter>source\main\render\menu\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="Cheat\Visuals\menu\imgui\imstb_rectpack.h">
+      <Filter>source\main\render\menu\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="Cheat\Visuals\menu\imgui\imstb_textedit.h">
+      <Filter>source\main\render\menu\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="Cheat\Visuals\menu\imgui\imstb_truetype.h">
+      <Filter>source\main\render\menu\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils\Math\math.h">
+      <Filter>source\main\core</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils\Il2cpp\Memory.h">
+      <Filter>source\main\core</Filter>
+    </ClInclude>
+    <ClInclude Include="Startup.h">
+      <Filter>source\main\render</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils\vars.h">
+      <Filter>source\main\core</Filter>
+    </ClInclude>
+    <ClInclude Include="Cheat\Hooks\offsets.h">
+      <Filter>source\main\core</Filter>
+    </ClInclude>
+    <ClInclude Include="Cheat\Hooks\defs.h">
+      <Filter>source\main\hooks</Filter>
+    </ClInclude>
+    <ClInclude Include="Cheat\Game\game.h">
+      <Filter>source\main\core\sdk</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils\Il2cpp\il2cpp.h">
+      <Filter>source\main\core\sdk</Filter>
+    </ClInclude>
+    <ClInclude Include="Cheat\Game\entities.h">
+      <Filter>source\main\core\main\ent</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils\Math\crc32.h">
+      <Filter>source\main\core</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils\xorstr.h">
+      <Filter>source\main\core</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils\Math\vector.h">
+      <Filter>source\main\core\sdk</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils\Math\structs.h">
+      <Filter>source\main\core\sdk</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils\class.h">
+      <Filter>source\main\core\sdk</Filter>
+    </ClInclude>
+    <ClInclude Include="Cheat\Misc\aim.h">
+      <Filter>source\main\core\main</Filter>
+    </ClInclude>
+    <ClInclude Include="Cheat\Visuals\Rendering.h">
+      <Filter>source\main\core\main</Filter>
+    </ClInclude>
+    <ClInclude Include="Cheat\Misc\misc.h">
+      <Filter>source\main\core\main</Filter>
+    </ClInclude>
+    <ClInclude Include="Cheat\Hooks\hooks.h">
+      <Filter>source\main\core\main</Filter>
+    </ClInclude>
+    <ClInclude Include="Cheat\Visuals\esp.h">
+      <Filter>source\main\core\main</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils\Il2cpp\lazy_importer.hpp" />
+    <ClInclude Include="Cheat\Visuals\menu\Elements\combo.hpp">
+      <Filter>source\main\render\menu\new_menu</Filter>
+    </ClInclude>
+    <ClInclude Include="Cheat\Visuals\menu\imgui\imgui_tricks.hpp">
+      <Filter>source\main\render\menu\new_menu</Filter>
+    </ClInclude>
+    <ClInclude Include="Cheat\Misc\other.hpp">
+      <Filter>source\main\core\main</Filter>
+    </ClInclude>
+    <ClInclude Include="Cheat\Render.h">
+      <Filter>source\main</Filter>
+    </ClInclude>
+    <ClInclude Include="Cheat\Visuals\menu\imgui\imgui_freetype.h">
+      <Filter>source\main\render\menu\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="Cheat\Visuals\menu\imgui\Shadows.h">
+      <Filter>source\main\render\menu</Filter>
+    </ClInclude>
+    <ClInclude Include="discord\include\discord_register.h" />
+    <ClInclude Include="discord\include\discord_rpc.h" />
+    <ClInclude Include="Utils\nlohmann\detail\conversions\from_json.hpp" />
+    <ClInclude Include="Utils\nlohmann\detail\conversions\to_chars.hpp" />
+    <ClInclude Include="Utils\nlohmann\detail\conversions\to_json.hpp" />
+    <ClInclude Include="Utils\nlohmann\detail\input\binary_reader.hpp" />
+    <ClInclude Include="Utils\nlohmann\detail\input\input_adapters.hpp" />
+    <ClInclude Include="Utils\nlohmann\detail\input\json_sax.hpp" />
+    <ClInclude Include="Utils\nlohmann\detail\input\lexer.hpp" />
+    <ClInclude Include="Utils\nlohmann\detail\input\parser.hpp" />
+    <ClInclude Include="Utils\nlohmann\detail\input\position_t.hpp" />
+    <ClInclude Include="Utils\nlohmann\detail\iterators\internal_iterator.hpp" />
+    <ClInclude Include="Utils\nlohmann\detail\iterators\iter_impl.hpp" />
+    <ClInclude Include="Utils\nlohmann\detail\iterators\iteration_proxy.hpp" />
+    <ClInclude Include="Utils\nlohmann\detail\iterators\iterator_traits.hpp" />
+    <ClInclude Include="Utils\nlohmann\detail\iterators\json_reverse_iterator.hpp" />
+    <ClInclude Include="Utils\nlohmann\detail\iterators\primitive_iterator.hpp" />
+    <ClInclude Include="Utils\nlohmann\detail\meta\call_std\begin.hpp" />
+    <ClInclude Include="Utils\nlohmann\detail\meta\call_std\end.hpp" />
+    <ClInclude Include="Utils\nlohmann\detail\meta\cpp_future.hpp" />
+    <ClInclude Include="Utils\nlohmann\detail\meta\detected.hpp" />
+    <ClInclude Include="Utils\nlohmann\detail\meta\identity_tag.hpp" />
+    <ClInclude Include="Utils\nlohmann\detail\meta\is_sax.hpp" />
+    <ClInclude Include="Utils\nlohmann\detail\meta\std_fs.hpp" />
+    <ClInclude Include="Utils\nlohmann\detail\meta\type_traits.hpp" />
+    <ClInclude Include="Utils\nlohmann\detail\meta\void_t.hpp" />
+    <ClInclude Include="Utils\nlohmann\detail\output\binary_writer.hpp" />
+    <ClInclude Include="Utils\nlohmann\detail\output\output_adapters.hpp" />
+    <ClInclude Include="Utils\nlohmann\detail\output\serializer.hpp" />
+    <ClInclude Include="Utils\nlohmann\detail\abi_macros.hpp" />
+    <ClInclude Include="Utils\nlohmann\detail\exceptions.hpp" />
+    <ClInclude Include="Utils\nlohmann\detail\hash.hpp" />
+    <ClInclude Include="Utils\nlohmann\detail\json_custom_base_class.hpp" />
+    <ClInclude Include="Utils\nlohmann\detail\json_pointer.hpp" />
+    <ClInclude Include="Utils\nlohmann\detail\json_ref.hpp" />
+    <ClInclude Include="Utils\nlohmann\detail\macro_scope.hpp" />
+    <ClInclude Include="Utils\nlohmann\detail\macro_unscope.hpp" />
+    <ClInclude Include="Utils\nlohmann\detail\string_concat.hpp" />
+    <ClInclude Include="Utils\nlohmann\detail\string_escape.hpp" />
+    <ClInclude Include="Utils\nlohmann\detail\value_t.hpp" />
+    <ClInclude Include="Utils\nlohmann\thirdparty\hedley\hedley.hpp" />
+    <ClInclude Include="Utils\nlohmann\thirdparty\hedley\hedley_undef.hpp" />
+    <ClInclude Include="Utils\nlohmann\adl_serializer.hpp" />
+    <ClInclude Include="Utils\nlohmann\byte_container_with_subtype.hpp" />
+    <ClInclude Include="Utils\nlohmann\json.hpp" />
+    <ClInclude Include="Utils\nlohmann\json_fwd.hpp" />
+    <ClInclude Include="Utils\nlohmann\ordered_map.hpp" />
+    <ClInclude Include="Utils\Fonts.h" />
+    <ClInclude Include="Cheat\Visuals\menu\imgui\imgui_internal.h" />
+    <ClInclude Include="freetype\include\freetype\config\ftconfig.h" />
+    <ClInclude Include="freetype\include\freetype\config\ftheader.h" />
+    <ClInclude Include="freetype\include\freetype\config\ftmodule.h" />
+    <ClInclude Include="freetype\include\freetype\config\ftoption.h" />
+    <ClInclude Include="freetype\include\freetype\config\ftstdlib.h" />
+    <ClInclude Include="freetype\include\freetype\config\integer-types.h" />
+    <ClInclude Include="freetype\include\freetype\config\mac-support.h" />
+    <ClInclude Include="freetype\include\freetype\config\public-macros.h" />
+    <ClInclude Include="freetype\include\freetype\internal\services\svbdf.h" />
+    <ClInclude Include="freetype\include\freetype\internal\services\svcfftl.h" />
+    <ClInclude Include="freetype\include\freetype\internal\services\svcid.h" />
+    <ClInclude Include="freetype\include\freetype\internal\services\svfntfmt.h" />
+    <ClInclude Include="freetype\include\freetype\internal\services\svgldict.h" />
+    <ClInclude Include="freetype\include\freetype\internal\services\svgxval.h" />
+    <ClInclude Include="freetype\include\freetype\internal\services\svkern.h" />
+    <ClInclude Include="freetype\include\freetype\internal\services\svmetric.h" />
+    <ClInclude Include="freetype\include\freetype\internal\services\svmm.h" />
+    <ClInclude Include="freetype\include\freetype\internal\services\svotval.h" />
+    <ClInclude Include="freetype\include\freetype\internal\services\svpfr.h" />
+    <ClInclude Include="freetype\include\freetype\internal\services\svpostnm.h" />
+    <ClInclude Include="freetype\include\freetype\internal\services\svprop.h" />
+    <ClInclude Include="freetype\include\freetype\internal\services\svpscmap.h" />
+    <ClInclude Include="freetype\include\freetype\internal\services\svpsinfo.h" />
+    <ClInclude Include="freetype\include\freetype\internal\services\svsfnt.h" />
+    <ClInclude Include="freetype\include\freetype\internal\services\svttcmap.h" />
+    <ClInclude Include="freetype\include\freetype\internal\services\svtteng.h" />
+    <ClInclude Include="freetype\include\freetype\internal\services\svttglyf.h" />
+    <ClInclude Include="freetype\include\freetype\internal\services\svwinfnt.h" />
+    <ClInclude Include="freetype\include\freetype\internal\autohint.h" />
+    <ClInclude Include="freetype\include\freetype\internal\cffotypes.h" />
+    <ClInclude Include="freetype\include\freetype\internal\cfftypes.h" />
+    <ClInclude Include="freetype\include\freetype\internal\compiler-macros.h" />
+    <ClInclude Include="freetype\include\freetype\internal\ftcalc.h" />
+    <ClInclude Include="freetype\include\freetype\internal\ftdebug.h" />
+    <ClInclude Include="freetype\include\freetype\internal\ftdrv.h" />
+    <ClInclude Include="freetype\include\freetype\internal\ftgloadr.h" />
+    <ClInclude Include="freetype\include\freetype\internal\fthash.h" />
+    <ClInclude Include="freetype\include\freetype\internal\ftmemory.h" />
+    <ClInclude Include="freetype\include\freetype\internal\ftmmtypes.h" />
+    <ClInclude Include="freetype\include\freetype\internal\ftobjs.h" />
+    <ClInclude Include="freetype\include\freetype\internal\ftpsprop.h" />
+    <ClInclude Include="freetype\include\freetype\internal\ftrfork.h" />
+    <ClInclude Include="freetype\include\freetype\internal\ftserv.h" />
+    <ClInclude Include="freetype\include\freetype\internal\ftstream.h" />
+    <ClInclude Include="freetype\include\freetype\internal\fttrace.h" />
+    <ClInclude Include="freetype\include\freetype\internal\ftvalid.h" />
+    <ClInclude Include="freetype\include\freetype\internal\psaux.h" />
+    <ClInclude Include="freetype\include\freetype\internal\pshints.h" />
+    <ClInclude Include="freetype\include\freetype\internal\sfnt.h" />
+    <ClInclude Include="freetype\include\freetype\internal\svginterface.h" />
+    <ClInclude Include="freetype\include\freetype\internal\t1types.h" />
+    <ClInclude Include="freetype\include\freetype\internal\tttypes.h" />
+    <ClInclude Include="freetype\include\freetype\internal\wofftypes.h" />
+    <ClInclude Include="freetype\include\freetype\freetype.h" />
+    <ClInclude Include="freetype\include\freetype\ftadvanc.h" />
+    <ClInclude Include="freetype\include\freetype\ftbbox.h" />
+    <ClInclude Include="freetype\include\freetype\ftbdf.h" />
+    <ClInclude Include="freetype\include\freetype\ftbitmap.h" />
+    <ClInclude Include="freetype\include\freetype\ftbzip2.h" />
+    <ClInclude Include="freetype\include\freetype\ftcache.h" />
+    <ClInclude Include="freetype\include\freetype\ftchapters.h" />
+    <ClInclude Include="freetype\include\freetype\ftcid.h" />
+    <ClInclude Include="freetype\include\freetype\ftcolor.h" />
+    <ClInclude Include="freetype\include\freetype\ftdriver.h" />
+    <ClInclude Include="freetype\include\freetype\fterrdef.h" />
+    <ClInclude Include="freetype\include\freetype\fterrors.h" />
+    <ClInclude Include="freetype\include\freetype\ftfntfmt.h" />
+    <ClInclude Include="freetype\include\freetype\ftgasp.h" />
+    <ClInclude Include="freetype\include\freetype\ftglyph.h" />
+    <ClInclude Include="freetype\include\freetype\ftgxval.h" />
+    <ClInclude Include="freetype\include\freetype\ftgzip.h" />
+    <ClInclude Include="freetype\include\freetype\ftimage.h" />
+    <ClInclude Include="freetype\include\freetype\ftincrem.h" />
+    <ClInclude Include="freetype\include\freetype\ftlcdfil.h" />
+    <ClInclude Include="freetype\include\freetype\ftlist.h" />
+    <ClInclude Include="freetype\include\freetype\ftlogging.h" />
+    <ClInclude Include="freetype\include\freetype\ftlzw.h" />
+    <ClInclude Include="freetype\include\freetype\ftmac.h" />
+    <ClInclude Include="freetype\include\freetype\ftmm.h" />
+    <ClInclude Include="freetype\include\freetype\ftmodapi.h" />
+    <ClInclude Include="freetype\include\freetype\ftmoderr.h" />
+    <ClInclude Include="freetype\include\freetype\ftotval.h" />
+    <ClInclude Include="freetype\include\freetype\ftoutln.h" />
+    <ClInclude Include="freetype\include\freetype\ftparams.h" />
+    <ClInclude Include="freetype\include\freetype\ftpfr.h" />
+    <ClInclude Include="freetype\include\freetype\ftrender.h" />
+    <ClInclude Include="freetype\include\freetype\ftsizes.h" />
+    <ClInclude Include="freetype\include\freetype\ftsnames.h" />
+    <ClInclude Include="freetype\include\freetype\ftstroke.h" />
+    <ClInclude Include="freetype\include\freetype\ftsynth.h" />
+    <ClInclude Include="freetype\include\freetype\ftsystem.h" />
+    <ClInclude Include="freetype\include\freetype\fttrigon.h" />
+    <ClInclude Include="freetype\include\freetype\fttypes.h" />
+    <ClInclude Include="freetype\include\freetype\ftwinfnt.h" />
+    <ClInclude Include="freetype\include\freetype\otsvg.h" />
+    <ClInclude Include="freetype\include\freetype\t1tables.h" />
+    <ClInclude Include="freetype\include\freetype\ttnameid.h" />
+    <ClInclude Include="freetype\include\freetype\tttables.h" />
+    <ClInclude Include="freetype\include\freetype\tttags.h" />
+    <ClInclude Include="freetype\include\ft2build.h" />
+    <ClInclude Include="Utils\WepaonIcon.h" />
+    <ClInclude Include="Cheat\Visuals\menu\Menu.h" />
+    <ClInclude Include="Cheat\Visuals\menu\Elements\ImAdd.h" />
+    <ClInclude Include="Cheat\Config\Config.h" />
+    <ClInclude Include="Cheat\Visuals\Hitmarker\HitMarker.h" />
+    <ClInclude Include="Cheat\Config\Base63.h" />
+    <ClInclude Include="XorStr.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="main.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="Cheat\Hooks\minhook\src\buffer.c">
+      <Filter>source\main\hooks\minhook</Filter>
+    </ClCompile>
+    <ClCompile Include="Cheat\Hooks\minhook\src\HDE\hde32.c">
+      <Filter>source\main\hooks\minhook</Filter>
+    </ClCompile>
+    <ClCompile Include="Cheat\Hooks\minhook\src\HDE\hde64.c">
+      <Filter>source\main\hooks\minhook</Filter>
+    </ClCompile>
+    <ClCompile Include="Cheat\Hooks\minhook\src\hook.c">
+      <Filter>source\main\hooks\minhook</Filter>
+    </ClCompile>
+    <ClCompile Include="Cheat\Hooks\minhook\src\trampoline.c">
+      <Filter>source\main\hooks\minhook</Filter>
+    </ClCompile>
+    <ClCompile Include="Cheat\Visuals\menu\imgui\imgui.cpp">
+      <Filter>source\main\render\menu\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="Cheat\Visuals\menu\imgui\imgui_draw.cpp">
+      <Filter>source\main\render\menu\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="Cheat\Visuals\menu\imgui\imgui_impl_dx11.cpp">
+      <Filter>source\main\render\menu\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="Cheat\Visuals\menu\imgui\imgui_impl_win32.cpp">
+      <Filter>source\main\render\menu\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="Cheat\Visuals\menu\imgui\imgui_stdlib.cpp">
+      <Filter>source\main\render\menu\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="Cheat\Visuals\menu\imgui\imgui_widgets.cpp">
+      <Filter>source\main\render\menu\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="Cheat\Visuals\menu\imgui\imgui_tricks.cpp">
+      <Filter>source\main\render\menu\new_menu</Filter>
+    </ClCompile>
+    <ClCompile Include="Cheat\Visuals\menu\imgui\imgui_demo.cpp">
+      <Filter>source\main\render\menu\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="Cheat\Visuals\menu\imgui\imgui_freetype.cpp">
+      <Filter>source\main\render\menu\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="Cheat\Visuals\menu\imgui\imgui_tables.cpp">
+      <Filter>source\main\render\menu\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="Cheat\Visuals\menu\Elements\ImAdd.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="Cheat\Config\Base64.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="includes.h">
+      <Filter>source</Filter>
+    </None>
+  </ItemGroup>
+</Project>
