@@ -1,83 +1,112 @@
 diff --git a/.gitignore b/.gitignore
-index b714ec6..ec9bb4b 100644
---- a/.gitignore
+new file mode 100644
+index 0000000..ec9bb4b
+--- /dev/null
 +++ b/.gitignore
-@@ -12,3 +12,4 @@ kiero (last)/x64/Temp/
- *.suo
- *.db
- sdl-check-*
+@@ -0,0 +1,15 @@
++# Visual Studio cache / user settings
++.vs/
++*.vcxproj.user
++
++# Build intermediates (Temp = IntDir per vcxproj)
++kiero (last)/x64/Temp/
++*.obj
++*.ilk
++*.exp
++
++# Local VS database files
++*.suo
++*.db
++sdl-check-*
 +STW_Manipulator_fix.patch
+diff --git a/kiero (last)/DllMain/includes.h b/kiero (last)/DllMain/includes.h
+index 9b445e7..abdc587 100644
+--- a/kiero (last)/DllMain/includes.h	
++++ b/kiero (last)/DllMain/includes.h	
+@@ -12,7 +12,16 @@
+ #include <Lmcons.h>
+ #include <TlHelp32.h>
+ #include <vector>
+-#include <atlstr.h>
++// CStringA replacement — no MFC/ATL needed (project uses /clr:none, afx.h/atlstr.h unavailable)
++inline std::string WideToAnsi(LPCWSTR wstr)
++{
++	if (!wstr) return std::string();
++	int len = WideCharToMultiByte(CP_ACP, 0, wstr, -1, nullptr, 0, nullptr, nullptr);
++	if (len <= 0) return std::string();
++	std::string out(len - 1, '\0');
++	WideCharToMultiByte(CP_ACP, 0, wstr, -1, out.data(), len, nullptr, nullptr);
++	return out;
++}
+ #include <D3DX11tex.h>
+ #pragma comment(lib, "D3DX11.lib")
+ #include "kiero/kiero.h"
 diff --git a/kiero (last)/DllMain/main/cheat/combat/stw.h b/kiero (last)/DllMain/main/cheat/combat/stw.h
-index 1448fe7..7335061 100644
+index a4ac418..7335061 100644
 --- a/kiero (last)/DllMain/main/cheat/combat/stw.h	
 +++ b/kiero (last)/DllMain/main/cheat/combat/stw.h	
-@@ -86,18 +86,17 @@ bool stw(Projectile* projectile, float deltaTime)
- 	// глаза — тогда LOS-проверки проходят легально и пули «видят» цель сквозь то,
- 	// что реально закрывает клиентский глаз.
- 	// m_manipulate объявлен в cheat/other.h; stw.h подключается раньше него,
--	// поэтому используем прямое extern-объявление (inline — без проблем линковки).
+@@ -81,6 +81,24 @@ bool stw(Projectile* projectile, float deltaTime)
+ 	Vector3 cur_pos = projectile->currentPosition();
+ 	Vector3 cur_vel = projectile->currentVelocity();
+ 
++	// Связка с Manipulator: когда desync активен (клавиша зажата), сервер считает
++	// наш глаз смещённым на m_manipulate. Трассу снаряда проверяем от «серверного»
++	// глаза — тогда LOS-проверки проходят легально и пули «видят» цель сквозь то,
++	// что реально закрывает клиентский глаз.
++	// m_manipulate объявлен в cheat/other.h; stw.h подключается раньше него,
 +	// поэтому здесь только extern-объявление (определение inline-переменной общее на все TU).
- #ifndef STW_EXTERN_MANIPULATE
- #define STW_EXTERN_MANIPULATE
--	inline Vector3& stw_manipulate_ref();
++#ifndef STW_EXTERN_MANIPULATE
++#define STW_EXTERN_MANIPULATE
 +	extern Vector3 m_manipulate; // объявление на inline-переменную из cheat/other.h (C++17, общая для всех TU)
- #endif
- 	static const bool stw_use_manipulator = true;
- 	Vector3 eye_shift = Vector3::Zero();
- 	if (stw_use_manipulator && settings::combat::manipulator &&
- 		GetAsyncKeyState(settings::misc::manipulator_key)) {
--		Vector3& manip = stw_manipulate_ref();
--		if (!manip.empty())
--			eye_shift = manip;
++#endif
++	static const bool stw_use_manipulator = true;
++	Vector3 eye_shift = Vector3::Zero();
++	if (stw_use_manipulator && settings::combat::manipulator &&
++		GetAsyncKeyState(settings::misc::manipulator_key)) {
 +		if (!m_manipulate.empty())
 +			eye_shift = m_manipulate;
- 	}
- 
++	}
++
  	float speed = cur_vel.Magnitude();
+ 	if (speed < 1e-5f || deltaTime <= 0.f)
+ 		return false;
+@@ -158,7 +176,7 @@ bool stw(Projectile* projectile, float deltaTime)
+ 			return false;
+ 
+ 		// Проверяем, что путь от текущей позиции до точки попадания легален
+-		if (!utils::LineOfSight(cur_pos, hit_point_world))
++		if (!utils::LineOfSight(cur_pos + eye_shift, hit_point_world))
+ 			return false;
+ 
+ 		HitTest* ht = projectile->hitTest();
 diff --git a/kiero (last)/DllMain/main/cheat/hooks.h b/kiero (last)/DllMain/main/cheat/hooks.h
-index 603a682..e38f0a9 100644
+index 563f08c..e38f0a9 100644
 --- a/kiero (last)/DllMain/main/cheat/hooks.h	
 +++ b/kiero (last)/DllMain/main/cheat/hooks.h	
-@@ -695,16 +695,15 @@ void hk_DoFirstPersonCamera(PlayerEyes* a1, Component* cam) {
+@@ -695,6 +695,22 @@ void hk_DoFirstPersonCamera(PlayerEyes* a1, Component* cam) {
  	}
  }
  
--// ===== Manipulator: хуки (порт из 222333666, адаптация под SDK проекта) =====
--// Отдаём серверу манипулированное смещение глаза вместо реального BodyLeanOffset.
 +// === Manipulator: сервер получает манипулированное смещение глаза вместо реального BodyLeanOffset ===
- Vector3 hk_BodyLeanOffset(PlayerEyes* eyes) {
- 	if (settings::combat::manipulator && GetAsyncKeyState(settings::misc::manipulator_key) && !m_manipulate.empty())
- 		return m_manipulate;
- 	return Original_BodyLeanOffset(eyes);
- }
- 
--// Смещаем позицию глаз на величину манипуляции — снаряды стартуют из «серверного» глаза,
--// поэтому пули легально летят из той же точки, куда смотрит сервер.
++Vector3 hk_BodyLeanOffset(PlayerEyes* eyes) {
++	if (settings::combat::manipulator && GetAsyncKeyState(settings::misc::manipulator_key) && !m_manipulate.empty())
++		return m_manipulate;
++	return Original_BodyLeanOffset(eyes);
++}
++
 +// Клиентская трассировка (hitscan/BulletTP/STW) тоже видит глаз со смещением,
 +// поэтому пули легально стартуют из «серверной» позиции глаза.
- Vector3 hk_EyePositionForPlayer(BaseMountable* mount, BasePlayer* player, Quaternion* rot) {
- 	auto orig = Original_EyePositionForPlayer(mount, player, rot);
- 	if (settings::combat::manipulator && GetAsyncKeyState(settings::misc::manipulator_key) && !m_manipulate.empty())
-@@ -714,18 +713,6 @@ Vector3 hk_EyePositionForPlayer(BaseMountable* mount, BasePlayer* player, Quater
- 
++Vector3 hk_EyePositionForPlayer(BaseMountable* mount, BasePlayer* player, Quaternion* rot) {
++	auto orig = Original_EyePositionForPlayer(mount, player, rot);
++	if (settings::combat::manipulator && GetAsyncKeyState(settings::misc::manipulator_key) && !m_manipulate.empty())
++		return orig + m_manipulate;
++	return orig;
++}
++
  void SendClientTick(BasePlayer* baseplayer) {
  	if (!baseplayer) return original_sendclienttick(baseplayer);
--
--	// Манипулятор: расширяем desync-окно и пересчитываем выгодную точку смещения глаза.
--	if (settings::combat::manipulator && GetAsyncKeyState(settings::misc::manipulator_key)) {
--		baseplayer->clientTickInterval() = 0.99f;
--		if (settings::closestPlayer != NULL)
--			other::find_manipulate_angle();
--	}
--	else if (!m_manipulate.empty()) {
--		baseplayer->clientTickInterval() = 0.05f;
--		m_manipulate = Vector3::Zero();
--	}
--
  	if (settings::misc::anti_aim) {
- 
- 		auto input = safe_read(baseplayer + Offsets::BasePlayer_input, uintptr_t);
-@@ -743,6 +730,16 @@ void SendClientTick(BasePlayer* baseplayer) {
+@@ -714,6 +730,16 @@ void SendClientTick(BasePlayer* baseplayer) {
  			safe_write(current + 0x14, spin_angles, Vector3);
  	}
  
@@ -94,7 +123,7 @@ index 603a682..e38f0a9 100644
  	return original_sendclienttick(baseplayer);
  }
  
-@@ -1344,6 +1341,8 @@ void hooks_load()
+@@ -1315,6 +1341,8 @@ void hooks_load()
  	hooking((void*)METHOD("Assembly-CSharp::HitTest::BuildAttackMessage(BaseEntity): Attack"), (void**)&HitTest::BuildAttackMessage_, BuildAttackMessage_hk);
  	hooking((void*)METHOD("Assembly-CSharp::Projectile::DoHit(HitTest,Vector3,Vector3): Boolean"), (void**)&original_dohit, DoHit);
  	hooking((void*)METHOD("Assembly-CSharp::BasePlayer::SendClientTick(): Void"), (void**)&original_sendclienttick, SendClientTick);
@@ -103,16 +132,7 @@ index 603a682..e38f0a9 100644
  	hooking((void*)METHOD("Assembly-CSharp::ItemModProjectile::GetRandomVelocity(): Single"), (void**)&original_getrandomvelocity, GetRandomVelocity);
  	hooking((void*)METHOD("Assembly-CSharp::AimConeUtil::GetModifiedAimConeDirection(Single,Vector3,Boolean): Vector3"), (void**)&original_aimconedirection, GetModifiedAimConeDirection);
  	hooking((void*)METHOD("Assembly-CSharp::PlayerWalkMovement::ClientInput(InputState,ModelState): Void"), (void**)&original_walkclientinput, WalkClientInput);
-@@ -1353,8 +1352,6 @@ void hooks_load()
- 	hooking((void*)METHOD("Assembly-CSharp::BaseCombatEntity::DoHitNotify(HitInfo): Void"), (void**)&original_dohitnotify, DoHitNotify);
- 	hooking((void*)METHOD("Assembly-CSharp::CursorManager::Update(): Void"), (void**)&CursorManager::Update_, CursorManagerUpdate_hk);
- 	hooking((void*)METHOD("Assembly-CSharp::HitInfo::get_isHeadshot(): Boolean"), (void**)&original_getisheadshot, get_isHeadshot);
--	hooking((void*)METHOD("Assembly-CSharp::PlayerEyes::get_BodyLeanOffset(): Vector3"), (void**)&Original_BodyLeanOffset, hk_BodyLeanOffset);
--	hooking((void*)METHOD("Assembly-CSharp::BaseMountable::EyePositionForPlayer(BasePlayer,Quaternion): Vector3"), (void**)&Original_EyePositionForPlayer, hk_EyePositionForPlayer);
- }
- 
- void hooks_unload()
-@@ -1375,6 +1372,8 @@ void hooks_unload()
+@@ -1344,6 +1372,8 @@ void hooks_unload()
  	unhooking((void*)METHOD("Assembly-CSharp::HitTest::BuildAttackMessage(BaseEntity): Attack"), (void**)&HitTest::BuildAttackMessage_, BuildAttackMessage_hk);
  	unhooking((void*)METHOD("Assembly-CSharp::Projectile::DoHit(HitTest,Vector3,Vector3): Boolean"), (void**)&original_dohit, DoHit);
  	unhooking((void*)METHOD("Assembly-CSharp::BasePlayer::SendClientTick(): Void"), (void**)&original_sendclienttick, SendClientTick);
@@ -121,11 +141,91 @@ index 603a682..e38f0a9 100644
  	unhooking((void*)METHOD("Assembly-CSharp::ItemModProjectile::GetRandomVelocity(): Single"), (void**)&original_getrandomvelocity, GetRandomVelocity);
  	unhooking((void*)METHOD("Assembly-CSharp::AimConeUtil::GetModifiedAimConeDirection(Single,Vector3,Boolean): Vector3"), (void**)&original_aimconedirection, GetModifiedAimConeDirection);
  	unhooking((void*)METHOD("Assembly-CSharp::PlayerWalkMovement::ClientInput(InputState,ModelState): Void"), (void**)&original_walkclientinput, WalkClientInput);
-@@ -1384,6 +1383,4 @@ void hooks_unload()
- 	unhooking((void*)METHOD("Assembly-CSharp::BaseCombatEntity::DoHitNotify(HitInfo): Void"), (void**)&original_dohitnotify, DoHitNotify);
- 	unhooking((void*)METHOD("Assembly-CSharp::CursorManager::Update(): Void"), (void**)&CursorManager::Update_, CursorManagerUpdate_hk);
- 	unhooking((void*)METHOD("Assembly-CSharp::HitInfo::get_isHeadshot(): Boolean"), (void**)&original_getisheadshot, get_isHeadshot);
--	unhooking((void*)METHOD("Assembly-CSharp::PlayerEyes::get_BodyLeanOffset(): Vector3"), (void**)&Original_BodyLeanOffset, hk_BodyLeanOffset);
--	unhooking((void*)METHOD("Assembly-CSharp::BaseMountable::EyePositionForPlayer(BasePlayer,Quaternion): Vector3"), (void**)&Original_EyePositionForPlayer, hk_EyePositionForPlayer);
- }
-\ No newline at end of file
+diff --git a/kiero (last)/DllMain/main/cheat/other.h b/kiero (last)/DllMain/main/cheat/other.h
+index d40c018..9a3949f 100644
+--- a/kiero (last)/DllMain/main/cheat/other.h	
++++ b/kiero (last)/DllMain/main/cheat/other.h	
+@@ -2,7 +2,7 @@
+ #include <corecrt_math_defines.h>
+ #include <utility>
+ 
+-Vector3 m_manipulate = Vector3::Zero();
++inline Vector3 m_manipulate = Vector3::Zero(); // inline — безопасно при включении из нескольких TU
+ float VFlyhack = 0.0f;
+ float HFlyhack = 0.0f;
+ float VMaxFlyhack = 0.0f;
+diff --git a/kiero (last)/DllMain/main/cheat/visuals/enity_loop.h b/kiero (last)/DllMain/main/cheat/visuals/enity_loop.h
+index 8c51bd0..c95289f 100644
+--- a/kiero (last)/DllMain/main/cheat/visuals/enity_loop.h	
++++ b/kiero (last)/DllMain/main/cheat/visuals/enity_loop.h	
+@@ -83,8 +83,8 @@ void enity_loop() {
+ 			if (settings::combat::target_name)
+ 			{
+ 				std::string string;
+-				std::string _name(CStringA(TargetPlayer->_displayName()));
+-				char buf[256] = { 0 }; sprintf_s(buf, (CStringA(TargetPlayer->_displayName())));
++				std::string _name(WideToAnsi(TargetPlayer->_displayName()));
++				char buf[256] = { 0 }; sprintf_s(buf, "%s", WideToAnsi(TargetPlayer->_displayName()).c_str());
+ 				string += buf;
+ 				DrawString(xs, ys - 50, ImColor(255, 255, 255), string.c_str());
+ 			}
+diff --git a/kiero (last)/DllMain/main/cheat/visuals/player_esp.h b/kiero (last)/DllMain/main/cheat/visuals/player_esp.h
+index d360163..a0ba759 100644
+--- a/kiero (last)/DllMain/main/cheat/visuals/player_esp.h	
++++ b/kiero (last)/DllMain/main/cheat/visuals/player_esp.h	
+@@ -64,7 +64,7 @@ void render_esp_player(BasePlayer* BP)
+ 	{
+ 		if (settings::visual::name)
+ 		{
+-			std::string _name(CStringA(BP->_displayName()));
++			std::string _name(WideToAnsi(BP->_displayName()));
+ 			DrawString(left.x - Entity_w, top.y - 8.f, ImColor(settings::visual::name_color[0], settings::visual::name_color[1], settings::visual::name_color[2]), _name.c_str());
+ 			pos += settings::visual::font_scale - 1;
+ 		}
+@@ -269,7 +269,7 @@ void render_esp_npc(BasePlayer* BP)
+ 		if (settings::npc::name)
+ 		{
+ 
+-			std::string _name(CStringA(BP->_displayName()));
++			std::string _name(WideToAnsi(BP->_displayName()));
+ 			DrawString(left.x - Entity_w, top.y - 8.f, ImColor(255, 196, 0), _name.c_str());
+ 			pos += settings::visual::font_scale - 1;
+ 		}
+diff --git a/kiero (last)/DllMain/main/cheat/visuals/world_esp.h b/kiero (last)/DllMain/main/cheat/visuals/world_esp.h
+index 5341b6e..6a8f302 100644
+--- a/kiero (last)/DllMain/main/cheat/visuals/world_esp.h	
++++ b/kiero (last)/DllMain/main/cheat/visuals/world_esp.h	
+@@ -135,7 +135,7 @@ void hackablecrate(DWORD64 ObjectClass, DWORD64 Object, char* buff) {
+ 					auto* m_Text = reinterpret_cast<pUncStr>(safe_read(timerText + 0xD0, DWORD64));
+ 					ImColor color;
+ 
+-					std::string _name((LPCSTR)CStringA(m_Text->str));
++					std::string _name(WideToAnsi(m_Text->str).c_str());
+ 
+ 					color = ImColor(255, 69, 0);
+ 
+diff --git a/kiero (last)/DllMain/main/menu.h b/kiero (last)/DllMain/main/menu.h
+index 06619b5..f27fa67 100644
+--- a/kiero (last)/DllMain/main/menu.h	
++++ b/kiero (last)/DllMain/main/menu.h	
+@@ -145,6 +145,8 @@ void menu()
+                         edited::Checkbox(("Show radius"), ("Drawing the bullet teleport radius"), &settings::weapons::show_radius);
+                     }
+                     edited::Checkbox(("STW"), ("Shoot Throw Wall - redirect bullets through walls to closest point on target"), &settings::weapons::stw);
++                    edited::Checkbox(("Manipulator"), ("Desync eye position: server sees your eyes at a manipulated offset, so bullets legally originate from it. Works in combo with BulletTP/STW/hitscan while the key is held"), &settings::combat::manipulator);
++                    edited::Keybind(("Manipulator key"), ("Hold this key to activate the manipulator desync"), &settings::misc::manipulator_key);
+                 }
+ 
+                 edited::EndChild();
+diff --git a/kiero (last)/DllMain/main/utils/config/config.h b/kiero (last)/DllMain/main/utils/config/config.h
+index b8bd372..b43845d 100644
+--- a/kiero (last)/DllMain/main/utils/config/config.h	
++++ b/kiero (last)/DllMain/main/utils/config/config.h	
+@@ -167,6 +167,7 @@ private:
+ 
+ 		SetupValue(settings::weapons::bullet_tp, false, ("Combat"), ("Bullet tp"));
+ 		SetupValue(settings::weapons::stw, false, ("Combat"), ("STW"));
++		SetupValue(settings::combat::manipulator, false, ("Combat"), ("Manipulator"));
+ 		SetupValue(settings::combat::hit_scan, false, ("Combat"), ("Hit scan"));
+ 		SetupValue(settings::combat::autoreload, false, ("Combat"), ("Auto reload"));
+ 		SetupValue(settings::combat::ignore_players_type[0], false, ("Combat"), ("ignore_players_type 0"));
