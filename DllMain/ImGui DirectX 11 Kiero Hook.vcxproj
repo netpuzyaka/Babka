@@ -167,19 +167,33 @@
     <ClCompile Include="core\lib\gui\managers\PopupManager.cpp" />
     <ClCompile Include="core\lib\gui\managers\TabsManager.cpp" />
     <ClCompile Include="core\lib\gui\managers\WidgetsManager.cpp" />
-    <ClCompile Include="core\lib\imgui\imgui.cpp" />
+    <ClCompile Include="core\lib\imgui\imgui.cpp">
+      <WholeProgramOptimization>false</WholeProgramOptimization>
+    </ClCompile>
     <ClCompile Include="core\lib\imgui\imgui_demo.cpp" />
     <ClCompile Include="core\lib\imgui\imgui_draw.cpp" />
     <ClCompile Include="core\lib\imgui\imgui_freetype.cpp" />
     <ClCompile Include="core\lib\imgui\imgui_impl_dx11.cpp" />
     <ClCompile Include="core\lib\imgui\imgui_impl_win32.cpp" />
     <ClCompile Include="core\lib\imgui\imgui_tables.cpp" />
-    <ClCompile Include="core\lib\imgui\imgui_widgets.cpp" />
-    <ClCompile Include="core\lib\minhook\src\buffer.c" />
-    <ClCompile Include="core\lib\minhook\src\hde\hde32.c" />
-    <ClCompile Include="core\lib\minhook\src\hde\hde64.c" />
-    <ClCompile Include="core\lib\minhook\src\hook.c" />
-    <ClCompile Include="core\lib\minhook\src\trampoline.c" />
+    <ClCompile Include="core\lib\imgui\imgui_widgets.cpp">
+      <WholeProgramOptimization>false</WholeProgramOptimization>
+    </ClCompile>
+    <ClCompile Include="core\lib\minhook\src\buffer.c">
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+    </ClCompile>
+    <ClCompile Include="core\lib\minhook\src\hde\hde32.c">
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+    </ClCompile>
+    <ClCompile Include="core\lib\minhook\src\hde\hde64.c">
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+    </ClCompile>
+    <ClCompile Include="core\lib\minhook\src\hook.c">
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+    </ClCompile>
+    <ClCompile Include="core\lib\minhook\src\trampoline.c">
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+    </ClCompile>
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
