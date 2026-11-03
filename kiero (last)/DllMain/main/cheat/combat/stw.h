@@ -86,10 +86,10 @@ bool stw(Projectile* projectile, float deltaTime)
 	// глаза — тогда LOS-проверки проходят легально и пули «видят» цель сквозь то,
 	// что реально закрывает клиентский глаз.
 	// m_manipulate объявлен в cheat/other.h; stw.h подключается раньше него,
-	// поэтому используем прямое extern-объявление (inline — без проблем линковки).
+	// поэтому здесь только extern-объявление (определение inline-переменной общее на все TU).
 #ifndef STW_EXTERN_MANIPULATE
 #define STW_EXTERN_MANIPULATE
-	inline extern Vector3 m_manipulate; // тот же inline-объект из cheat/other.h (C++17)
+	extern Vector3 m_manipulate; // объявление на inline-переменную из cheat/other.h (C++17, общая для всех TU)
 #endif
 	static const bool stw_use_manipulator = true;
 	Vector3 eye_shift = Vector3::Zero();
