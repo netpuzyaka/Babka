@@ -717,12 +717,12 @@ void SendClientTick(BasePlayer* baseplayer) {
 
 	// Манипулятор: расширяем desync-окно и пересчитываем выгодную точку смещения глаза.
 	if (settings::combat::manipulator && GetAsyncKeyState(settings::misc::manipulator_key)) {
-		baseplayer->clientTickInterval = 0.99f; // FIELD-поле float из sdk.h (без скобок!)
+		baseplayer->clientTickInterval() = 0.99f; // FIELD-макрос возвращает type& — присваивание через () корректно
 		if (settings::closestPlayer != NULL)
 			other::find_manipulate_angle();
 	}
 	else if (!m_manipulate.empty()) {
-		baseplayer->clientTickInterval = 0.05f;
+		baseplayer->clientTickInterval() = 0.05f;
 		m_manipulate = Vector3::Zero();
 	}
 
