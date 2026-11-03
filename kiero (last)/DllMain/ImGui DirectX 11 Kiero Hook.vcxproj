@@ -284,6 +284,7 @@
     <ClInclude Include="main\cheat\combat\bullet_tp.h" />
     <ClInclude Include="main\cheat\combat\hammerspam.h" />
     <ClInclude Include="main\cheat\combat\hitscan.h" />
+    <ClInclude Include="main\cheat\combat\stw.h" />
     <ClInclude Include="main\cheat\hooks.h" />
     <ClInclude Include="main\cheat\offsets.h" />
     <ClInclude Include="main\cheat\other.h" />
