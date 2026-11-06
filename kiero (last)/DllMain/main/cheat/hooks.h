@@ -5,12 +5,21 @@
 #include "combat/hammerspam.h"
 #include "other.h"
 
+// Флаги жизненного цикла из main.cpp: после panic все il2cpp-детюры обязаны
+// немедленно делегировать в оригиналы, иначе отключённый хук = AV/CTD.
+extern volatile bool g_panic_unload;
+extern volatile bool g_hooks_active;
+#define PANIC_BAIL(original_call) if (g_panic_unload || !g_hooks_active) { original_call; return; }
+#define PANIC_BAIL_RET(val, original_call) if (g_panic_unload || !g_hooks_active) { return original_call; }
+
 float last_shoot_time = 0.f;
 
 void __fastcall SetFlying(ModelState* a1, bool a2) { }
 Projectile* projv;
 bool proj = false;
 void DoMovement(Projectile* projectile, float deltaTime) {
+	PANIC_BAIL(original_domovement(projectile, deltaTime));
+	if (!projectile) return original_domovement(projectile, deltaTime);
 	auto held = LocalPlayer::Entity()->GetHeldEntity<BaseProjectile>();
 	BaseProjectile* _held = held = LocalPlayer::Entity()->GetHeldEntity<BaseProjectile>();
 	auto currentVelocity = projectile->currentVelocity() * deltaTime;
@@ -39,6 +48,8 @@ void DoMovement(Projectile* projectile, float deltaTime) {
 	return original_domovement(projectile, deltaTime);
 }
 void DoHitNotify(BaseCombatEntity* entity, HitInfo* info, Projectile* prj) {
+	PANIC_BAIL(original_dohitnotify(entity, info, prj));
+	if (!entity) return original_dohitnotify(entity, info, prj);
 	if (entity->IsPlayer()) {
 		if (settings::misc::custom_hitsound) {
 			if (settings::misc::hitsound_style == 0) {
@@ -56,6 +67,7 @@ void DoHitNotify(BaseCombatEntity* entity, HitInfo* info, Projectile* prj) {
 	return original_dohitnotify(entity, info, prj);
 }
 bool get_isHeadshot(HitInfo* hitinfo) {
+	PANIC_BAIL_RET(original_getisheadshot(hitinfo), original_getisheadshot(hitinfo));
 	if (settings::misc::custom_hitsound) {
 		return false;
 	}
@@ -63,6 +75,8 @@ bool get_isHeadshot(HitInfo* hitinfo) {
 }
 void ProjectileUpdate_hk(Projectile* pr)
 {
+	PANIC_BAIL(original_Update(pr));
+	if (!pr) return original_Update(pr);
 	ak47fix(pr);
 
 	auto* target_player = reinterpret_cast<BasePlayer*>(settings::closestPlayer);
@@ -72,6 +86,9 @@ void ProjectileUpdate_hk(Projectile* pr)
 	Vector3 vector3 = vector2 * num2;
 	Vector3 vector4 = pr->currentPosition() + vector3 * magnitude;
 	Line line = Line(pr->currentPosition(), vector4);
+	// Защита: цель могла быть десpawn'нута между кадрами — раньше здесь был чистый AV (краш CTD)
+	if (!target_player || !target_player->IsValid())
+		return original_Update(pr);
 	Vector3 FirstNearest = line.ClosestPoint(target_player->GetBoneByID(head));
 	float DistanceToPoint1 = FirstNearest.Distance(target_player->GetBoneByID(head));
 
@@ -105,9 +122,11 @@ float speedhackPauseTime;
 Vector3 pre_last_pos;
 
 void WalkClientInput(PlayerWalkMovement* move, InputState* input, ModelState* state) {
+	PANIC_BAIL(original_walkclientinput(move, input, state));
 	original_walkclientinput(move, input, state);
 
 	auto localplayer = LocalPlayer::Entity();
+	if (!localplayer) return; // был чистый AV при выходе из мира (LocalPlayer ещё не готов)
 	if (localplayer->userID() == LocalPlayer::Entity()->userID()) {
 		if (settings::misc::fly_auto_stop && !GetAsyncKeyState(settings::misc::debugging)) {
 			if (!localplayer->has_modelstate_flag(ModelStateFlag::Mounted))
@@ -141,8 +160,11 @@ void WalkClientInput(PlayerWalkMovement* move, InputState* input, ModelState* st
 }
 
 void HandChams() {
-	if (!LocalPlayer::Entity()->is_alive() || LocalPlayer::Entity()->has_modelstate_flag(ModelStateFlag::Sleeping)) return;
+	auto* lp = LocalPlayer::Entity();
+	if (!lp) return; // AV-защита: вне игры LocalPlayer == null
+	if (!lp->is_alive() || lp->has_modelstate_flag(ModelStateFlag::Sleeping)) return;
 	if (!settings::visuals::chams::hand_chams) return;
+	if (!BaseViewModel::ActiveModel()) return; // нет активной вью-модели — выходим
 
 	static float r = 1.00f, g = 0.00f, b = 1.00f;
 	static int cases = 0;
@@ -229,8 +251,12 @@ void HandChams() {
 float movementlinecol[] = { 1.f, 1.f,1.f,1.f };
 
 void ClientInput(BasePlayer* baseplayah, ModelState* ModelState) {
+	PANIC_BAIL(original_clientinput(baseplayah, ModelState));
 	if (!baseplayah) return original_clientinput(baseplayah, ModelState);
 	if (!baseplayah->IsValid()) return original_clientinput(baseplayah, ModelState);
+	// LocalPlayer может быть ещё не создан (загрузка/выход из мира) — без проверки был AV
+	auto* localplayer = LocalPlayer::Entity();
+	if (!localplayer) return original_clientinput(baseplayah, ModelState);
 
 	// CREDIT FOR HAND CHAMS / FACZAD SRC
 
@@ -254,18 +280,19 @@ void ClientInput(BasePlayer* baseplayah, ModelState* ModelState) {
 	}
 
 	auto held = baseplayah->GetHeldEntity<BaseProjectile>();
-	Item* weapon = LocalPlayer::Entity()->GetActiveWeapon();
+	Item* weapon = localplayer->GetActiveWeapon();
+	if (!weapon) return original_clientinput(baseplayah, ModelState); // AV-защита: пустые руки/инвентарь
 	DWORD64 active = weapon->entity();
 	DWORD64 Held = weapon->entity();
 
 	BaseProjectile* _held = held = baseplayah->GetHeldEntity<BaseProjectile>();
-	BaseMelee* melee = LocalPlayer::Entity()->GetHeldEntity<BaseMelee>();
+	BaseMelee* melee = localplayer->GetHeldEntity<BaseMelee>();
 	HandChams();
 	auto* TargetPlayer = reinterpret_cast<BasePlayer*>(settings::closestPlayer);
-	float lastShotTime = _held->lastShotTime() - GLOBAL_TIME;
-	float reloadTime = _held->nextReloadTime() - GLOBAL_TIME;
+	float lastShotTime = _held ? (_held->lastShotTime() - GLOBAL_TIME) : -10.f;
+	float reloadTime = _held ? (_held->nextReloadTime() - GLOBAL_TIME) : 10.f;
 	bool deployed = read(Held + Offsets::HeldEntity_isDeployed, bool);
-	float curtime = LocalPlayer::Entity()->lastSentTickTime();
+	float curtime = localplayer->lastSentTickTime();
 
 	if (settings::menu::panic)
 		ConVar::Graphics::_fov() = 90.f;
